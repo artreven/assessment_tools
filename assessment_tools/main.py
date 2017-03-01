@@ -45,8 +45,6 @@ ld_graphs = {
 # replace with your folder!
 data_folder = os.path.join(BASE_DIR, 'text_assessment_app',
                            'text_assessment_app', 'data')
-print(data_folder)
-assert 0
 n_topics = 30
 
 
