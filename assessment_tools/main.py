@@ -6,6 +6,7 @@ from sklearn.externals import joblib
 from pp_api import virtuoso_calls as virtuoso
 from pp_api import pp_api_calls as pp_api
 import assessment_tools as at
+from artem_revenko_space.settings.base import BASE_DIR
 
 spql_profit_endpoint = 'https://profit-virtuoso.poolparty.biz/sparql'
 profit_pid = '1DE00088-2B4C-0001-9BB3-1C5234FF8640'
@@ -42,11 +43,10 @@ ld_graphs = {
     'http://europa.eu/newsroom/rss-feeds': 'text'
 }
 # replace with your folder!
-os_user_home_dir = os.environ['HOME']
-data_folder = os.path.join(os_user_home_dir,
-                           'Dropbox/personal/Projects/artem.revenko.space/'
-                           'text_assessment_app/text_assessment_app/data')
-
+data_folder = os.path.join(BASE_DIR, 'text_assessment_app',
+                           'text_assessment_app', 'data')
+print(data_folder)
+assert 0
 n_topics = 30
 
 
