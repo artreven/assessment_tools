@@ -1,0 +1,13 @@
+Density of data: 0.016
+Density of classifier: 0.058, nnz: 102
+Number of features: 1758
+
+Scores average: 0.109 0.790 0.969 0.974 0.980 0.979 0.977 0.972 0.970 0.965
+Scores stddev: 0.000 0.011 0.004 0.002 0.004 0.003 0.003 0.004 0.006 0.005
+Best score: 0.980, best param: {'C': 0.046415888336127774}Density of data: 0.019
+Density of classifier: 0.033, nnz: 251
+Number of features: 2502
+
+Scores average: 0.872 0.933 0.942 0.943 0.939 0.931 0.923 0.917 0.914 0.911
+Scores stddev: 0.004 0.005 0.002 0.002 0.002 0.002 0.003 0.004 0.004 0.004
+Best score: 0.943, best param: {'C': 0.01}

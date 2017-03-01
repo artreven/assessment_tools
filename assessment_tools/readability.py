@@ -2,11 +2,18 @@
 import re
 import math
 
-non_b = ['[A-Z].', 'etc.', 'Mr.']
-non_b_str = '[' + '|'.join(non_b) + ']'
+non_b = ['[A-Z].', 'etc.', 'Mr.', 'Mrs.']
+non_b_str = '|'.join(non_b)
 
-boundary_pattern = re.compile(r'(?<=[.?!])([\s|\r\n]+)(?=\"?[A-Z])')
+pre_b = ['.', '?', '!', '\]', '\n']
+pre_b_str = r'(?<=[' + r''.join(pre_b) + r'])'
 
+post_b = ['\(?[A-Z]', '\([a-z]']
+post_b_str = r'(?=(' + r')|('.join(post_b) + r'))'
+
+boundary_pattern = re.compile(r'{}([\"\']?[\s|\r\n]+[\"\']?){}'.format(
+    pre_b_str, post_b_str
+))
 
 def split_text(text):
     """
@@ -22,7 +29,11 @@ def split_text(text):
     for x in boundaries:
         span = x.span()
         new_sent = text[start:span[0]]
-        last_word = new_sent.split()[-1]
+        new_sent_words = new_sent.split()
+        if new_sent_words:
+            last_word = new_sent_words[-1]
+        else:
+            continue
         if re.fullmatch(non_b_str, last_word):
             continue
         else:
@@ -147,14 +158,98 @@ def get_stats(text):
 
 
 if __name__ == '__main__':
-    import argparse
+    import numpy as np
+    from nltk.corpus import gutenberg
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('text', type=str, help='Text')
-    args = parser.parse_args()
-    text = args.text
+    def get_prf(tp, tpfp, tpfn):
+        precision = tp / tpfp
+        recall = tp / tpfn
+        f1 = 2 * (precision*recall) / (precision + recall)
+        return precision, recall, f1
 
-    sentences = split_text(text)
-    print('\n\nSentences\n\n')
-    for i, sent in enumerate(sentences):
-        print(i, sent)
+    def benchmark_sbd():
+        ps = []
+        rs = []
+        f1s = []
+        c = 0
+        for fileid in gutenberg.fileids():
+            c += 1
+            copy_sents_gold = gutenberg.sents(fileid)
+            sents_gold = [s for s in copy_sents_gold]
+            for sent_i in range(len(sents_gold)):
+                new_sent = [w for w in sents_gold[sent_i] if w.isalpha()]
+                sents_gold[sent_i] = new_sent
+            text = gutenberg.raw(fileid)
+            sents_obtained = split_text(text)
+            copy_sents_obtained = sents_obtained.copy()
+            for sent_i in range(len(sents_obtained)):
+                new_sent = [w.group()
+                            for w in re.finditer(r'\w+', sents_obtained[sent_i])
+                            if w.group().isalpha()]
+                sents_obtained[sent_i] = new_sent
+            c_common = 0
+            for sent in sents_obtained:
+                if sent in  sents_gold:
+                    c_common += 1
+            p, r, f1 = get_prf(c_common, len(sents_obtained), len(sents_gold))
+            print('\n\n', fileid)
+            print('Precision: {:0.2f}, Recall: {:0.2f}, F1: {:0.2f}'.format(p, r, f1))
+            ps.append(p)
+            rs.append(r)
+            f1s.append(f1)
+
+        print('\n\nPrecision stats: {:0.3f} +- {:0.4f}'.format(np.mean(ps),
+                                                           np.std(ps)))
+        print('Recall stats: {:0.3f} +- {:0.4f}'.format(np.mean(rs),
+                                                        np.std(rs)))
+        print('F1 stats: {:0.3f} +- {:0.4f}'.format(np.mean(f1s),
+                                                    np.std(f1s)))
+        print(len(f1s))
+
+        good_ps = [p for p in ps if p >= 0.8]
+        good_rs = [r for r in rs if r >= 0.8]
+        good_f1s = [f1 for f1 in f1s if f1 >= 0.8]
+        print('\n Good precision stats: {:0.3f} +- {:0.4f}'.format(np.mean(good_ps),
+                                                           np.std(good_ps)))
+        print('Good Recall stats: {:0.3f} +- {:0.4f}'.format(np.mean(good_rs),
+                                                        np.std(good_rs)))
+        print('Good F1 stats: {:0.3f} +- {:0.4f}'.format(np.mean(good_f1s),
+                                                    np.std(good_f1s)))
+        print(len(good_f1s))
+
+    ##########################################
+    def benchmark_reads(articles):
+        def text_stats(texts):
+            for assessment in [get_ari, get_smog, get_fkgl, get_cli]:
+                print('\nScore: ', assessment)
+                scores = [assessment(article.text)
+                          for article in texts]
+                print('Average: {:0.2f}, std: {:0.3f}, '
+                      'max: {:0.2f}, min: {:0.2f}'.format(
+                    np.mean(scores), np.std(scores), max(scores), min(scores)
+                ))
+            stats = list(zip(*[get_stats(article.text)
+                               for article in texts]))
+            num_unique_words = stats[1]
+            num_polysyl = stats[2]
+            num_words = stats[0]
+            av_syls = stats[7]
+            av_words = stats[8]
+            print('Unique words: average: {}, std: {}'.format(
+                np.mean(num_unique_words), np.std(num_unique_words)
+            ))
+            print('Polysyls: average: {}, std: {}'.format(
+                np.mean(num_polysyl), np.std(num_polysyl)
+            ))
+            print('Number of words: average: {}, std: {}'.format(
+                np.mean(num_words), np.std(num_words)
+            ))
+            print('Syllables per word: average: {}, std: {}'.format(
+                np.mean(av_syls), np.std(av_syls)
+            ))
+            print('Words per sentence: average: {}, std: {}'.format(
+                np.mean(av_words), np.std(av_words)
+            ))
+
+        print('\n\nAll together')
+        text_stats(articles)
