@@ -59,13 +59,13 @@ def draw_topic_transition(M, x_ticks, y_ticks, show=False):
             title='Current timeframe',
             ticks='',
             showticklabels=False,
-            showgrid=True
+            showgrid=False,
         ),
         yaxis = dict(
             title='Previous timeframe',
             ticks='',
             showticklabels=False,
-            showgrid=True
+            showgrid=False,
         ),
     )
     fig = go.Figure(data=data, layout=layout)

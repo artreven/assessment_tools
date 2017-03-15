@@ -6,7 +6,7 @@ from sklearn.externals import joblib
 from pp_api import virtuoso_calls as virtuoso
 from pp_api import pp_api_calls as pp_api
 import assessment_tools as at
-from artem_revenko_space.settings.base import BASE_DIR
+from artem.settings import BASE_DIR
 
 spql_profit_endpoint = 'https://profit-virtuoso.poolparty.biz/sparql'
 profit_pid = '1DE00088-2B4C-0001-9BB3-1C5234FF8640'
